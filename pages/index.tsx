@@ -1,12 +1,15 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
 import Image from 'next/image'
+import ClientOnly from "../components/app/client-only";
+import Posts from "../components/posts";
+
 
 const Home: NextPage = () => {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center py-2">
       <Head>
-        <title>Create Next App</title>
+        <title>My Blog BackApp</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -24,8 +27,10 @@ const Home: NextPage = () => {
             pages/index.tsx
           </code>
         </p>
-
-        <div className="mt-6 flex max-w-4xl flex-wrap items-center justify-around sm:w-full">
+        <ClientOnly>
+          <Posts />
+        </ClientOnly>
+        {/* <div className="mt-6 flex max-w-4xl flex-wrap items-center justify-around sm:w-full">
           <a
             href="https://nextjs.org/docs"
             className="mt-6 w-96 rounded-xl border p-6 text-left hover:text-blue-600 focus:text-blue-600"
@@ -65,7 +70,7 @@ const Home: NextPage = () => {
               Instantly deploy your Next.js site to a public URL with Vercel.
             </p>
           </a>
-        </div>
+        </div> */}
       </main>
 
       <footer className="flex h-24 w-full items-center justify-center border-t">
