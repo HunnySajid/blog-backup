@@ -1,7 +1,8 @@
 import { ApolloClient, InMemoryCache } from "@apollo/client";
+import { CONFIG } from './config/env';
 
 const client = new ApolloClient({
-    uri: "https://api.hashnode.com/",
+    uri: CONFIG.BASE_URL,
     cache: new InMemoryCache(),
 });
 
