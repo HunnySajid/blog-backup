@@ -1,8 +1,8 @@
 import { ApolloClient, InMemoryCache } from "@apollo/client";
+import { CONFIG } from './config/env';
 
-// https://api.github.com/graphql
 const client = new ApolloClient({
-    uri: "https://api.hashnode.com/",
+    uri: CONFIG.BASE_URL,
     cache: new InMemoryCache(),
 });
 
