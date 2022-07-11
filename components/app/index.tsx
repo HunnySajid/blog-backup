@@ -1,66 +1,16 @@
 import { useState } from 'react';
-import { useQuery, useLazyQuery, useMutation, gql } from '@apollo/client';
+import { useQuery, useLazyQuery, useMutation } from '@apollo/client';
 import { Base64 } from 'js-base64';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { GET_POSTS, GET_OID } from '../../graph-ql/queries';
+import { CREATE_COMMIT } from '../../graph-ql/mutations';
 import client from '../../apollo-client-github';
 import { CONFIG } from '../../config/env';
 import Posts from '../posts';
 import Search from '../search';
 import Loader from '../loader';
 import Error from '../error';
-
-const GET_POSTS = gql`
-  query GetPosts($username: String!) {
-    user(username: $username) {
-      username
-      name
-      tagline
-      _id
-      publication {
-        posts {
-          _id
-          brief
-          coverImage
-          slug
-          title
-          contentMarkdown
-          dateAdded
-        }
-      }
-    }
-  }
-`;
-
-const GET_OID = gql`
-  query GetOID($repo: String!, $branch: String!, $owner: String!) {
-    repository(name: $repo, owner: $owner) {
-      object(expression: $branch) {
-        oid
-      }
-    }
-  }
-`;
-const CREATE_COMMIT = gql`
-  mutation CreateCommitOnBranch(
-    $oid: GitObjectID!
-    $fileChanges: FileChanges!
-    $branch: String!
-    $repoWithOwner: String!
-    $message: String!
-  ) {
-    createCommitOnBranch(
-      input: {
-        branch: { branchName: $branch, repositoryNameWithOwner: $repoWithOwner }
-        message: { headline: $message }
-        expectedHeadOid: $oid
-        fileChanges: $fileChanges
-      }
-    ) {
-      clientMutationId
-    }
-  }
-`;
 
 export default function App() {
   const [handleGetPosts, { data, loading, error }] = useLazyQuery(
@@ -86,21 +36,16 @@ export default function App() {
       variables: {
         branch: CONFIG.BRANCH_NAME,
         repoWithOwner: CONFIG.REPO_WITH_OWNER,
-        message: `Synced existing file post: temp commit`, // TODO: need to make it a scalable operation for millions of posts
+        message: `Synced existing file post: temp commit`, // TODO: need to make it a scalable operation for millions of posts, introduce batching here
       },
       client,
     }
   );
 
-    //   console.log('oidData', oidData);
-    //   console.log('oidError', oidError);
-
   const [username, setUsername] = useState('');
   const handleInput = (e) => {
     setUsername(e.target.value);
   };
-
-  //   console.log('data', data);
 
   const { publication } = data?.user || {};
 
@@ -119,8 +64,7 @@ export default function App() {
           additions: additions,
         },
       },
-      onError: (d) => {
-        console.log('error', d);
+      onError: () => {
         toast('Could not backed up successfully!', {
           type: 'error',
           pauseOnHover: false,
@@ -158,12 +102,21 @@ export default function App() {
                 pauseOnFocusLoss: false,
               });
             },
-            onCompleted: (d) => {
-              toast('Fetched successfully!', {
-                type: 'success',
-                pauseOnHover: false,
-                pauseOnFocusLoss: false,
-              });
+            onCompleted: (userData) => {
+              if(!userData?.user?.publication?.posts?.length) {
+                toast('No Posts found for this user!', {
+                  type: 'warning',
+                  pauseOnHover: false,
+                  pauseOnFocusLoss: false,
+                });
+              } else {
+                toast('Fetched successfully!', {
+                  type: 'success',
+                  pauseOnHover: false,
+                  pauseOnFocusLoss: false,
+                });
+              }
+              
             },
           })
         }
